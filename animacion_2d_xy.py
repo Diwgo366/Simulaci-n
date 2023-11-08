@@ -1,9 +1,9 @@
-"""Programa para simular particulas"""
+"""Programa para simular particulas en dos dimensiones, en sus ejes x y"""
 import math
+import os
 import numpy as np
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-import os
 
 # Declaración de parámetros
 SISTEMA = 3
@@ -12,11 +12,11 @@ DT = 0.01
 IMAGENES = 1
 LONGITUD = 10
 MASA = 1
-RADIO_CORTE = 4
+RADIO_CORTE = 7
 EPSILON = 1
 GAMA = 1
 ANIMAR = False
-RUTA_DATOS = f"Datos/Datos_{SISTEMA}.dat"
+RUTA_DATOS = f"Sistemas/Sistema_{SISTEMA}/Datos_{SISTEMA}.dat"
 
 # Obtención de condiciones iniciales
 datos = np.loadtxt(RUTA_DATOS)
@@ -35,9 +35,10 @@ def graficar(vector, variable, nombre):
     """Función para crear imagenes"""
     eje_x = list(range(len(vector)))
     eje_x = [i * DT for i in eje_x]
-    carpeta = f'Graficas/Sistema_{SISTEMA}'
+    carpeta = f'Sistemas/Sistema_{SISTEMA}'
     if not os.path.exists(carpeta):
         os.makedirs(carpeta)
+    plt.figure(figsize=(12, 6))
     plt.scatter(eje_x, vector, marker='o', color='red', s=5)
     plt.xlabel('Tiempo')
     plt.ylabel(variable)
@@ -52,17 +53,20 @@ def actualizar_posiciones(act_pos_x, act_pos_y, act_pos_z, act_vel_x, act_vel_y,
     fuerza_y = 0
     fuerza_z = 0
     distancia_media_parcial = 0
-    for i in range(NPAR):
-        distancia_x = posicion_x[part] - posicion_x[i]
-        distancia_y = posicion_y[part] - posicion_y[i]
-        distancia_z = posicion_z[part] - posicion_z[i]
-        distancia = math.sqrt(distancia_x**2 + distancia_y**2)
-        if i > part:
+    for k in range(NPAR):
+        distancia_x = posicion_x[part] - posicion_x[k]
+        distancia_y = posicion_y[part] - posicion_y[k]
+        distancia_z = posicion_z[part] - posicion_z[k]
+        distancia = math.sqrt(distancia_x**2 + distancia_y**2 + distancia_z**2)
+        if k > part:
             distancia_media_parcial = distancia_media_parcial + distancia
-        if i != part and distancia <= RADIO_CORTE:
-            fuerza_x = fuerza_x + 24*EPSILON*GAMA**6 * (2*GAMA**6*distancia**(-14)-distancia**(-8)) * distancia_x
-            fuerza_y = fuerza_y + 24*EPSILON*GAMA**6 * (2*GAMA**6*distancia**(-14)-distancia**(-8)) * distancia_y
-            fuerza_z = fuerza_z + 24*EPSILON*GAMA**6 * (2*GAMA**6*distancia**(-14)-distancia**(-8)) * distancia_z
+        if k != part and distancia <= RADIO_CORTE:
+            fuerza_x = fuerza_x + 24*EPSILON*GAMA**6 * \
+                (2*GAMA**6*distancia**(-14)-distancia**(-8)) * distancia_x
+            fuerza_y = fuerza_y + 24*EPSILON*GAMA**6 * \
+                (2*GAMA**6*distancia**(-14)-distancia**(-8)) * distancia_y
+            fuerza_z = fuerza_z + 24*EPSILON*GAMA**6 * \
+                (2*GAMA**6*distancia**(-14)-distancia**(-8)) * distancia_z
     acl_x = fuerza_x / MASA
     acl_y = fuerza_y / MASA
     acl_z = fuerza_z / MASA
@@ -85,15 +89,17 @@ if ANIMAR:
     for i in range(IMAGENES-1):
         y = i * LONGITUD
         plt.axhline(y, color='red', linestyle='--', alpha=0.5)
+
     def animate(frame):
         """Funcion para animar"""
         distancia_media_total1 = 0
-        for i in range(NPAR):
-            posicion_x[i], posicion_y[i], posicion_z[i], media_par1 = actualizar_posiciones(
-                posicion_x[i], posicion_y[i], posicion_z[i], velocidad_x[i], velocidad_y[i], velocidad_z[i], i)
-            posicion_x[i] = posicion_x[i] % LONGITUD
-            posicion_y[i] = posicion_y[i] % LONGITUD
-            posicion_z[i] = posicion_z[i] % LONGITUD
+        for j in range(NPAR):
+            posicion_x[j], posicion_y[j], posicion_z[j], media_par1 = actualizar_posiciones(
+                posicion_x[j], posicion_y[j], posicion_z[j],
+                velocidad_x[j], velocidad_y[j], velocidad_z[j], j)
+            posicion_x[j] = posicion_x[j] % LONGITUD
+            posicion_y[j] = posicion_y[j] % LONGITUD
+            posicion_z[j] = posicion_z[j] % LONGITUD
             distancia_media_total1 = distancia_media_total1 + media_par1
         distancia_media.append(distancia_media_total1/PARES)
         grafico.set_data(posicion_x, posicion_y)
@@ -104,13 +110,14 @@ if ANIMAR:
     plt.show()
 else:
     for step in range(int(TIEMPO / DT)):
-        distancia_media_total2 = 0
+        DISTANCIA_MEDIA_TOTAL2 = 0
         for i in range(NPAR):
             posicion_x[i], posicion_y[i], posicion_z[i], media_par2 = actualizar_posiciones(
-                posicion_x[i], posicion_y[i], posicion_z[i], velocidad_x[i], velocidad_y[i], velocidad_z[i], i)
+                posicion_x[i], posicion_y[i], posicion_z[i],
+                velocidad_x[i], velocidad_y[i], velocidad_z[i], i)
             posicion_x[i] = posicion_x[i] % LONGITUD
             posicion_y[i] = posicion_y[i] % LONGITUD
             posicion_z[i] = posicion_z[i] % LONGITUD
-            distancia_media_total2 = distancia_media_total2 + media_par2
-        distancia_media.append(distancia_media_total2/PARES)
+            DISTANCIA_MEDIA_TOTAL2 = DISTANCIA_MEDIA_TOTAL2 + media_par2
+        distancia_media.append(DISTANCIA_MEDIA_TOTAL2/PARES)
     graficar(distancia_media, "Distancia media", f"Distancia_media_{SISTEMA}")
