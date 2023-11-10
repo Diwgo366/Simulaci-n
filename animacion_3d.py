@@ -1,22 +1,34 @@
 """Programa para simular particulas"""
 import math
 import os
+import json
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 # Declaración de parámetros
-SISTEMA = 4
-TIEMPO = 10
+SISTEMA = 1
+TIEMPO = 0.7
+GUARDADO = TIEMPO
 DT = 0.01
-IMAGENES = 1
-LONGITUD = 10
-MASA = 1
-RADIO_CORTE = 7
-EPSILON = 1
-GAMA = 1
-ANIMAR = False
-RUTA_DATOS = f"Sistemas/Sistema_{SISTEMA}/Datos_{SISTEMA}.dat"
+ANIMAR = True
+
+#Lectura de la configuracion
+CARPETA = f"Sistemas/Sistema_{SISTEMA}"
+RUTA_DATOS = CARPETA + f"/Datos_{SISTEMA}.dat"
+
+def lectura(json_data, variable, valor_defecto):
+    return json_data.get(variable, valor_defecto)
+
+with open(CARPETA + F'/config_{SISTEMA}.json', 'r') as archivo:
+    data = json.load(archivo)
+
+IMAGENES = lectura(data,"IMAGENES",1)
+LONGITUD = lectura(data,"LONGITUD",10)
+MASA = lectura(data,"MASA",1)
+RADIO_CORTE = lectura(data,"RADIO_CORTE",5)
+EPSILON = lectura(data,"EPSILON",1)
+GAMA = lectura(data,"GAMA",1)
 
 # Obtención de condiciones iniciales
 datos = np.loadtxt(RUTA_DATOS)
@@ -76,7 +88,7 @@ def actualizar_posiciones(act_pos_x, act_pos_y, act_pos_z, act_vel_x, act_vel_y,
     act_pos_x = act_pos_x + act_vel_x * DT
     act_pos_y = act_pos_y + act_vel_y * DT
     act_pos_z = act_pos_z + act_vel_z * DT
-    return act_pos_x, act_pos_y, act_pos_z, distancia_media_parcial
+    return act_pos_x, act_pos_y, act_pos_z, act_vel_x, act_vel_y, act_vel_z, distancia_media_parcial
 
 if ANIMAR:
     fig = plt.figure(figsize=(6, 6))
@@ -92,14 +104,12 @@ if ANIMAR:
         """Funcion para animar"""
         distancia_media_total1 = 0
         for j in range(NPAR):
-            posicion_x[j], posicion_y[j], posicion_z[j], media_par1 = actualizar_posiciones(
+            posicion_x[j], posicion_y[j], posicion_z[j], velocidad_x[j], velocidad_y[j], velocidad_z[j], _ = actualizar_posiciones(
                 posicion_x[j], posicion_y[j], posicion_z[j],
                 velocidad_x[j], velocidad_y[j], velocidad_z[j], j)
             posicion_x[j] = posicion_x[j] % LONGITUD
             posicion_y[j] = posicion_y[j] % LONGITUD
             posicion_z[j] = posicion_z[j] % LONGITUD
-            distancia_media_total1 = distancia_media_total1 + media_par1
-        distancia_media.append(distancia_media_total1/PARES)
         grafico.set_data(posicion_x, posicion_y)
         grafico.set_3d_properties(posicion_z)
         return grafico,
@@ -109,14 +119,20 @@ if ANIMAR:
     plt.show()
 else:
     for step in range(int(TIEMPO / DT)):
-        DISTANCIA_MEDIA_TOTAL2 = 0
+        DISTANCIA_MEDIA_TOTAL = 0
+        VELOCIDAD_MEDIA = 0
         for i in range(NPAR):
-            posicion_x[i], posicion_y[i], posicion_z[i], media_par2 = actualizar_posiciones(
+            vel_cua = 0
+            posicion_x[i], posicion_y[i], posicion_z[i], velocidad_x[i], velocidad_y[i], velocidad_z[i], vel_par = actualizar_posiciones(
                 posicion_x[i], posicion_y[i], posicion_z[i],
                 velocidad_x[i], velocidad_y[i], velocidad_z[i], i)
             posicion_x[i] = posicion_x[i] % LONGITUD
             posicion_y[i] = posicion_y[i] % LONGITUD
             posicion_z[i] = posicion_z[i] % LONGITUD
-            DISTANCIA_MEDIA_TOTAL2 = DISTANCIA_MEDIA_TOTAL2 + media_par2
-        distancia_media.append(DISTANCIA_MEDIA_TOTAL2/PARES)
-    graficar(distancia_media, "Distancia media", f"Distancia_media_{SISTEMA}")
+            DISTANCIA_MEDIA_TOTAL = DISTANCIA_MEDIA_TOTAL + vel_par
+            vel_cua = velocidad_x[i]**2 + velocidad_y[i]**2 + velocidad_z[i]**2
+            VELOCIDAD_MEDIA = VELOCIDAD_MEDIA + vel_cua
+        distancia_media.append(DISTANCIA_MEDIA_TOTAL/PARES)
+        velocidad_cuadrada.append(VELOCIDAD_MEDIA/NPAR)
+    graficar(velocidad_cuadrada, "Velocidad al cuadrado", f"Velocidad_cuadrada_{SISTEMA}_{GUARDADO}")
+    graficar(distancia_media, "Distancia media", f"Distancia_media_{SISTEMA}_{GUARDADO}")
