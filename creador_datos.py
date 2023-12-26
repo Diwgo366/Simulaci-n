@@ -2,22 +2,21 @@
 import math
 import os
 import json
-import random
 import matplotlib.pyplot as plt
 import numpy as np
 
 #Seleccionar el sistema a trabajar
-SISTEMA = 2
+SISTEMA = 1
 
 #Introducción de parametros
 SIGMA = 1       # m
 EPSILON = 1     # kg m² s-²
-MASA = 0.001        # kg
-PAR_LADO = 5
+MASA = 1        # kg
+PAR_LADO = 3
 M = 10
 VEL = 0
-DES_VEL = 0.1
-DECIMALES = 3
+DES_VEL = 0.01
+DECIMALES = 10
 
 #Calculo de parametros adicionales
 NPAR = PAR_LADO**3
@@ -54,15 +53,8 @@ matriz1 = coordenadas_unicas
 
 #Crea valores para las velocidades con distribucion gaussiana
 matriz2 = np.round(np.random.normal(VEL, DES_VEL, size=(NPAR, 3)), DECIMALES)
-print(len(matriz1))
-print(len(matriz2))
 #Une ambas matrices y las ordena
-matrices_unidas = np.concatenate((matriz1, matriz2), axis=1)
-n_columnas = matrices_unidas.shape[1]
-orden_actual = np.arange(matrices_unidas.shape[0])
-for i in range(n_columnas - 1, -1, -1):
-    orden_actual = np.lexsort((orden_actual, matrices_unidas[:, i]))
-matriz_final = matrices_unidas[orden_actual]
+matriz_final = np.concatenate((matriz1, matriz2), axis=1)
 
 #Definir una funcion para graficar las diferentes dispersiones
 def grafica_dispersion(vector, nombre, guardado):
@@ -105,7 +97,7 @@ def grafica_dispersion(vector, nombre, guardado):
 
 #Actualizar velocidades para tener velocidad media de 0
 for i in range(3,6):
-    media = round((np.sum(matriz_final[:,i]))/(len(matriz_final[:,i])),DECIMALES)
+    media = (np.sum(matriz_final[:,i]))/(len(matriz_final[:,i]))
     for j in range (len(matriz_final[:,i])):
         matriz_final[j,i] = round(matriz_final[j,i] - media, DECIMALES)
 
@@ -125,7 +117,6 @@ configuracion = {
     "LONGITUD": LONGITUD,
     "DESVIACION": DES_VEL,
     "RADIO_CORTE": RADIO_CORTE,
-    "IMAGENES": 1,
     "MASA": MASA,
     "EPSILON": EPSILON,
     "SIGMA": SIGMA,
@@ -135,3 +126,6 @@ configuracion = {
 
 with open(carpeta+f'/config_{SISTEMA}.json', 'w') as file:
     json.dump(configuracion, file, indent=4)
+
+print("Datos creados exitosamente")
+print(f"Numero de particulas: {NPAR}")

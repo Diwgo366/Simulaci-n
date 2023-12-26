@@ -8,10 +8,10 @@ import matplotlib.pyplot as plt
 
 #Declaración de parámetros
 SISTEMA = 1
-TIEMPO = 0.7
+TIEMPO = 10
 GUARDADO = TIEMPO
-DT = 0.001
-ANIMAR = False
+DT = 0.1
+ANIMAR = True
 
 #Lectura de la configuracion
 CARPETA = f"Sistemas/Sistema_{SISTEMA}"
