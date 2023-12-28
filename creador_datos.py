@@ -1,12 +1,14 @@
 """Programa para crear los datos iniciales"""
 import math
 import os
+import shutil
 import json
 import matplotlib.pyplot as plt
 import numpy as np
+from colorama import Fore, Style
 
 #Seleccionar el sistema a trabajar
-SISTEMA = 1
+SISTEMA = 0
 
 #Introducción de parametros
 SIGMA = 1       # m
@@ -15,7 +17,7 @@ MASA = 1        # kg
 PAR_LADO = 3
 M = 10
 VEL = 0
-DES_VEL = 0.01
+DES_VEL = 0.1
 DECIMALES = 10
 
 #Calculo de parametros adicionales
@@ -30,19 +32,17 @@ carpeta = f'Sistemas/Sistema_{SISTEMA}'
 if not os.path.exists(carpeta):
     os.makedirs(carpeta)
 
-#Limpia las imagenes del sistema anterior
+#Limpia la carpeta anterior
 try:
-    archivos = os.listdir(carpeta)
-    for archivo in archivos:
-        if archivo.endswith(".png"):
-            ruta_completa = os.path.join(carpeta, archivo)
-            os.remove(ruta_completa)
+    if os.path.exists(carpeta):
+        shutil.rmtree(carpeta)
+        os.makedirs(carpeta)
 except Exception as e:
-        print(f"Error: {e}")
+    print(f"Error: {e}")
 
 #Crea la matriz de datos
 
-#Crea posiciones que no se repitan
+#Crea posiciones de forma homogénea
 coordenadas_unicas = []
 for i in range(PAR_LADO):
     for j in range(PAR_LADO):
@@ -53,7 +53,7 @@ matriz1 = coordenadas_unicas
 
 #Crea valores para las velocidades con distribucion gaussiana
 matriz2 = np.round(np.random.normal(VEL, DES_VEL, size=(NPAR, 3)), DECIMALES)
-#Une ambas matrices y las ordena
+#Une ambas matrices
 matriz_final = np.concatenate((matriz1, matriz2), axis=1)
 
 #Definir una funcion para graficar las diferentes dispersiones
@@ -95,7 +95,7 @@ def grafica_dispersion(vector, nombre, guardado):
     plt.savefig(ruta_imagen + guardado)
     plt.close()
 
-#Actualizar velocidades para tener velocidad media de 0
+#Actualiza velocidades para la velocidad media = 0
 for i in range(3,6):
     media = (np.sum(matriz_final[:,i]))/(len(matriz_final[:,i]))
     for j in range (len(matriz_final[:,i])):
@@ -110,7 +110,7 @@ grafica_dispersion(matriz_final[:,3], "Velocidades en x", "vel_ini_x")
 grafica_dispersion(matriz_final[:,4], "Velocidades en y", "vel_ini_y")
 grafica_dispersion(matriz_final[:,5], "Velocidades en z", "vel_ini_z")
 
-#Guarda las configuraciones para su ejecucioMASAn
+#Guarda las configuraciones para su ejecución
 configuracion = {
     "NUM_PAR": NPAR,
     "PARTICULAS_LADO": PAR_LADO,
@@ -127,5 +127,4 @@ configuracion = {
 with open(carpeta+f'/config_{SISTEMA}.json', 'w') as file:
     json.dump(configuracion, file, indent=4)
 
-print("Datos creados exitosamente")
-print(f"Numero de particulas: {NPAR}")
+print(Fore.GREEN + "Partículas creadas exitosamente: " + Fore.YELLOW + f"{NPAR}" + Style.RESET_ALL)

@@ -2,7 +2,7 @@
     "NUM_PAR": 27,
     "PARTICULAS_LADO": 3,
     "LONGITUD": 20,
-    "DESVIACION": 0.05,
+    "DESVIACION": 0.005,
     "RADIO_CORTE": 10,
     "MASA": 1,
     "EPSILON": 1,
