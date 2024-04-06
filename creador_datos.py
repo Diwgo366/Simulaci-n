@@ -14,18 +14,18 @@ SISTEMA = 0
 SIGMA = 1       # m
 EPSILON = 1     # kg m² s-²
 MASA = 1        # kg
-PAR_LADO = 3
+PAR_LADO = 5
 M = 10
 VEL = 0
-DES_VEL = 0.1
+DES_VEL = 1
 DECIMALES = 10
 
 #Calculo de parametros adicionales
-NPAR = PAR_LADO**3
+NPAR = PAR_LADO**3 + (PAR_LADO-1)**3
 RADIO_CORTE = M*SIGMA
 LONGITUD = 2*RADIO_CORTE
 PART_DISTANCIA = LONGITUD/PAR_LADO
-TAU = math.sqrt((SIGMA**2*MASA**2)/EPSILON) #s
+TAU = math.sqrt((SIGMA**2*MASA)/EPSILON) #s
 
 #Verifica o crea la ubicacion del sistema
 carpeta = f'Sistemas/Sistema_{SISTEMA}'
@@ -49,6 +49,13 @@ for i in range(PAR_LADO):
         for k in range(PAR_LADO):
             fila = (PART_DISTANCIA/2 + PART_DISTANCIA*i, PART_DISTANCIA/2 + PART_DISTANCIA*j, PART_DISTANCIA/2 + PART_DISTANCIA*k)
             coordenadas_unicas.append(fila)
+            
+for i in range(PAR_LADO-1):
+    for j in range(PAR_LADO-1):
+        for k in range(PAR_LADO-1):
+            fila = (PART_DISTANCIA + PART_DISTANCIA*i, PART_DISTANCIA + PART_DISTANCIA*j, PART_DISTANCIA + PART_DISTANCIA*k)
+            coordenadas_unicas.append(fila)
+
 matriz1 = coordenadas_unicas
 
 #Crea valores para las velocidades con distribucion gaussiana

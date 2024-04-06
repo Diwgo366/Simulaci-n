@@ -9,14 +9,16 @@ from alive_progress import alive_bar
 
 # Declaración de parámetros
 SISTEMA = 0
-TIEMPO = 50
-DT = 0.04
-ANIMAR = False
+TIEMPO = 10
+DT = 0.004
+ANIMAR = True
 IMAGENES = True
 RESULTADOS = False
+RECUPERAR = False
 
 #CHECKPOINT
-CHECKPOINT = 10
+PUNTO_GUARDADO = TIEMPO
+PUNTO_RECUPERADO = 50
 
 #Alertas
 ERROR = 50
@@ -134,12 +136,18 @@ def actualizar_posiciones(part):
         fuerza_y += fuerza_y_img
         fuerza_z += fuerza_z_img
 
-    velocidad_x[part] += (fuerza_x / MASA) * DT
-    velocidad_y[part] += (fuerza_y / MASA) * DT
-    velocidad_z[part] += (fuerza_z / MASA) * DT
-    posicion_x[part] += velocidad_x[part] * DT
-    posicion_y[part] += velocidad_y[part] * DT
-    posicion_z[part] += velocidad_z[part] * DT
+    velocidad_x_1 = velocidad_x[part] + (fuerza_x / 2) * DT
+    velocidad_y_1 = velocidad_y[part] + (fuerza_y / 2) * DT
+    velocidad_z_1 = velocidad_z[part] + (fuerza_z / 2) * DT
+    
+    posicion_x[part] += velocidad_x_1 * DT
+    posicion_y[part] += velocidad_y_1 * DT
+    posicion_z[part] += velocidad_z_1 * DT
+
+    velocidad_x[part] = velocidad_x_1 + (fuerza_x / 2) * DT
+    velocidad_y[part] = velocidad_y_1 + (fuerza_y / 2) * DT
+    velocidad_z[part] = velocidad_z_1 + (fuerza_z / 2) * DT
+    
     return distancia_media_parcial
 
 if ANIMAR:
@@ -194,5 +202,5 @@ else:
                 np.savetxt(ALERTA + f"/nuevas.dat",
                 nuevas_posiciones, delimiter="\t")
         
-        graficar(velocidad_cuadrada, "Velocidad al cuadrado", f"Velocidad_cuadrada_{SISTEMA}_{GUARDADO}")
-        graficar(distancia_media, "Distancia media", f"Distancia_media_{SISTEMA}_{GUARDADO}")
+    graficar(velocidad_cuadrada, "Velocidad al cuadrado", f"Velocidad_cuadrada_{SISTEMA}_{GUARDADO}")
+    graficar(distancia_media, "Distancia media", f"Distancia_media_{SISTEMA}_{GUARDADO}")
