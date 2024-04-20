@@ -8,24 +8,28 @@ import numpy as np
 from colorama import Fore, Style
 
 #Seleccionar el sistema a trabajar
-SISTEMA = 0
+SISTEMA = 3
 
 #Introducción de parametros
-SIGMA = 1       # m
-EPSILON = 1     # kg m² s-²
-MASA = 1        # kg
-PAR_LADO = 5
-M = 10
-VEL = 0
+PAR_LADO = 2
 DES_VEL = 1
-DECIMALES = 10
+MASA = 1
+RADIO_CORTE = 10
+DELTA_ORIGEN = 2                # Distancia al origen
+UND_LONGITUD = 2.405*10**-10    # m
+UND_ENERGIA = 165.324*10**-23   # kg m² s-²
+UND_MASA = 1                    # kg
+BOLTZMANN= 1.38*10**-23         # kg m² s-² K-¹
+T = 0.5
 
 #Calculo de parametros adicionales
-NPAR = PAR_LADO**3 + (PAR_LADO-1)**3
-RADIO_CORTE = M*SIGMA
+VEL = 0
+NPAR = 4*PAR_LADO**3
 LONGITUD = 2*RADIO_CORTE
 PART_DISTANCIA = LONGITUD/PAR_LADO
-TAU = math.sqrt((SIGMA**2*MASA)/EPSILON) #s
+UND_TIEMPO = math.sqrt((UND_LONGITUD**2*MASA)/UND_ENERGIA)  # s
+UND_FUERZA = UND_ENERGIA/UND_LONGITUD                       # kg m s-²
+UND_TEMPERATURA = UND_ENERGIA/BOLTZMANN                     # K
 
 #Verifica o crea la ubicacion del sistema
 carpeta = f'Sistemas/Sistema_{SISTEMA}'
@@ -47,19 +51,22 @@ coordenadas_unicas = []
 for i in range(PAR_LADO):
     for j in range(PAR_LADO):
         for k in range(PAR_LADO):
-            fila = (PART_DISTANCIA/2 + PART_DISTANCIA*i, PART_DISTANCIA/2 + PART_DISTANCIA*j, PART_DISTANCIA/2 + PART_DISTANCIA*k)
+            fila = (DELTA_ORIGEN + PART_DISTANCIA/2 + PART_DISTANCIA*i, DELTA_ORIGEN + PART_DISTANCIA/2 + PART_DISTANCIA*j, DELTA_ORIGEN + PART_DISTANCIA/2 + PART_DISTANCIA*k)
             coordenadas_unicas.append(fila)
             
-for i in range(PAR_LADO-1):
-    for j in range(PAR_LADO-1):
-        for k in range(PAR_LADO-1):
-            fila = (PART_DISTANCIA + PART_DISTANCIA*i, PART_DISTANCIA + PART_DISTANCIA*j, PART_DISTANCIA + PART_DISTANCIA*k)
+            fila = (DELTA_ORIGEN + PART_DISTANCIA + PART_DISTANCIA*i, DELTA_ORIGEN + PART_DISTANCIA + PART_DISTANCIA*j, DELTA_ORIGEN + PART_DISTANCIA/2 + PART_DISTANCIA*k)
             coordenadas_unicas.append(fila)
-
+            
+            fila = (DELTA_ORIGEN + PART_DISTANCIA + PART_DISTANCIA*i, DELTA_ORIGEN + PART_DISTANCIA/2 + PART_DISTANCIA*j, DELTA_ORIGEN + PART_DISTANCIA + PART_DISTANCIA*k)
+            coordenadas_unicas.append(fila)
+            
+            fila = (DELTA_ORIGEN + PART_DISTANCIA/2 + PART_DISTANCIA*i, DELTA_ORIGEN + PART_DISTANCIA + PART_DISTANCIA*j, DELTA_ORIGEN + PART_DISTANCIA + PART_DISTANCIA*k)
+            coordenadas_unicas.append(fila)
+            
 matriz1 = coordenadas_unicas
 
 #Crea valores para las velocidades con distribucion gaussiana
-matriz2 = np.round(np.random.normal(VEL, DES_VEL, size=(NPAR, 3)), DECIMALES)
+matriz2 = np.random.normal(VEL, DES_VEL, size=(NPAR, 3))
 #Une ambas matrices
 matriz_final = np.concatenate((matriz1, matriz2), axis=1)
 
@@ -106,11 +113,20 @@ def grafica_dispersion(vector, nombre, guardado):
 for i in range(3,6):
     media = (np.sum(matriz_final[:,i]))/(len(matriz_final[:,i]))
     for j in range (len(matriz_final[:,i])):
-        matriz_final[j,i] = round(matriz_final[j,i] - media, DECIMALES)
+        matriz_final[j,i] = matriz_final[j,i] - media
 
-#Se guarda la nueva matriz
-np.savetxt(carpeta + f"/Datos_{SISTEMA}.dat",
-           matriz_final, fmt=f"%.{DECIMALES}f", delimiter="\t")
+sum_cuadrados = 0
+for i in range (NPAR):
+    sum_cuadrados += matriz_final[i,3]**2 + matriz_final[i,4]**2 + matriz_final[i,5]**2
+
+parametro_escala = math.sqrt((3*(NPAR-1))/(sum_cuadrados))*math.sqrt(T)
+
+for i in range (NPAR):
+    for j in range(3,6):
+        matriz_final[i,j] = matriz_final[i,j]*parametro_escala
+        
+#Se guarda la matriz
+np.savetxt(carpeta + f"/Datos_{SISTEMA}.dat", matriz_final, delimiter="\t")
 
 #Crea grafico para mostrar la frecuencia de las velocidades
 grafica_dispersion(matriz_final[:,3], "Velocidades en x", "vel_ini_x")
@@ -125,10 +141,12 @@ configuracion = {
     "DESVIACION": DES_VEL,
     "RADIO_CORTE": RADIO_CORTE,
     "MASA": MASA,
-    "EPSILON": EPSILON,
-    "SIGMA": SIGMA,
-    "TAU": TAU,
-    "UNIDADES": round(EPSILON/SIGMA, DECIMALES),
+    "UND_MASA": UND_MASA,
+    "UND_ENERGIA": UND_ENERGIA,
+    "UND_LONGITUD": UND_LONGITUD,
+    "UND_TIEMPO": UND_TIEMPO,
+    "UND_FUERZA": UND_FUERZA,
+    "UND_TEMPERATURA": UND_TEMPERATURA,
 }
 
 with open(carpeta+f'/config_{SISTEMA}.json', 'w') as file:

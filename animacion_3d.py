@@ -8,7 +8,7 @@ import matplotlib.animation as animation
 from alive_progress import alive_bar
 
 # Declaración de parámetros
-SISTEMA = 0
+SISTEMA = 3
 TIEMPO = 10
 DT = 0.004
 ANIMAR = True
@@ -31,14 +31,11 @@ RUTA_DATOS = CARPETA + f"/Datos_{SISTEMA}.dat"
 with open(CARPETA + f'/config_{SISTEMA}.json', 'r') as archivo:
     data = json.load(archivo)
 
+NPAR = data.get("NUM_PAR")
 PARTICULAS_LADO = data.get("PARTICULAS_LADO")
 LONGITUD = data.get("LONGITUD")
-MASA = data.get("MASA")
 RADIO_CORTE = data.get("RADIO_CORTE")
-EPSILON = data.get("EPSILON")
-SIGMA = data.get("SIGMA")
-NPAR = data.get("NUM_PAR")
-UNIDADES = data.get("UNIDADES")
+MASA = data.get("MASA")
 
 # Obtención de condiciones iniciales
 datos = np.loadtxt(RUTA_DATOS)
